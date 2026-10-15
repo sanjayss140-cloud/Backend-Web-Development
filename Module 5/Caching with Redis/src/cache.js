@@ -24,21 +24,39 @@
 
 const Redis = require('ioredis');
 
-// TODO: create Redis instance
+const redis = new Redis({
+  host: process.env.REDIS_HOST || 'localhost',
+  port: parseInt(process.env.REDIS_PORT || '6379', 10),
+  lazyConnect: true,
+});
 
 // TODO: implement cacheGet
 async function cacheGet(key) {
-  throw new Error('not implemented');
+  try {
+    const val = await redis.get(key);
+    return val ? JSON.parse(val) : null;
+  } catch (err) {
+    console.error(`[cache] error getting key ${key}:`, err);
+    return null;
+  }
 }
 
 // TODO: implement cacheSet
 async function cacheSet(key, data, ttlSeconds) {
-  throw new Error('not implemented');
+  try {
+    await redis.set(key, JSON.stringify(data), 'EX', ttlSeconds);
+  } catch (err) {
+    console.error(`[cache] error setting key ${key}:`, err);
+  }
 }
 
 // TODO: implement cacheDel
 async function cacheDel(key) {
-  throw new Error('not implemented');
+  try {
+    await redis.del(key);
+  } catch (err) {
+    console.error(`[cache] error deleting key ${key}:`, err);
+  }
 }
 
-module.exports = { cacheGet, cacheSet, cacheDel };
+module.exports = { redis, cacheGet, cacheSet, cacheDel };
