@@ -26,9 +26,9 @@ const postsRouter = require('./routes/posts');
 const usersRouter = require('./routes/users');
 
 // Your middleware live in ./middleware — implement them, then mount them below.
-// const requestId = require('./middleware/requestId');
-// const logger = require('./middleware/logger');
-// const timing = require('./middleware/timing');
+const requestId = require('./middleware/requestId');
+const logger = require('./middleware/logger');
+const timing = require('./middleware/timing');
 
 const app = express();
 
@@ -43,6 +43,9 @@ app.use(express.json());
 //   app.use(logger);
 //   app.use(timing);
 // ─────────────────────────────────────────────────────────────────────────────
+app.use(requestId);
+app.use(logger);
+app.use(timing);
 
 // Two mounted routers (do not remove these).
 app.use('/posts', postsRouter);
