@@ -23,30 +23,40 @@ const OUTPUT = path.join(__dirname, 'sample-copy.txt');
 
 // ── PART 1: read the whole file into memory, then log its size ──────────────
 function readWholeFile() {
-  // TODO: use fs.readFile(INPUT, callback). With no encoding, the callback
-  //       receives a Buffer.
-  // TODO: if there is an error, log it and return.
-  // TODO: log the size in bytes. A Buffer has a .length property (bytes).
-  //       Example log: "readFile: loaded 524288 bytes into memory".
+  fs.readFile(INPUT, (err, data) => {
+    if (err) {
+      console.error('Error reading file:', err.message);
+      return;
+    }
+    console.log(`readFile: loaded ${data.length} bytes into memory at once`);
+  });
 }
 
 // ── PART 2: stream the file and pipe it to a writable stream ────────────────
 function streamFile() {
-  // TODO: create a readable stream with fs.createReadStream(INPUT).
-  // TODO: create a writable stream with fs.createWriteStream(OUTPUT).
-  // TODO: pipe the readable into the writable: readable.pipe(writable).
-  // TODO: listen for the writable's "finish" event and log a done message,
-  //       e.g. "stream: finished copying via 64KB chunks (flat memory)".
+  const readable = fs.createReadStream(INPUT);
+  const writable = fs.createWriteStream(OUTPUT);
+
+  readable.pipe(writable);
+
+  writable.on('finish', () => {
+    console.log('stream: finished copying via 64KB chunks (peak memory stays flat)');
+  });
+
+  readable.on('error', (err) => {
+    console.error('Read stream error:', err.message);
+  });
+
+  writable.on('error', (err) => {
+    console.error('Write stream error:', err.message);
+  });
 }
 
 // ── PART 3: explain the difference ──────────────────────────────────────────
-// TODO: In your OWN words, replace this comment with 2 to 3 sentences on WHY
-//       the stream approach is preferable for large files. Mention memory:
-//       readFile holds the whole file at once; the stream moves it in chunks
-//       so peak memory stays flat regardless of file size.
-//
 // YOUR EXPLANATION:
-//
+// fs.readFile loads the entire file contents into memory at once, meaning memory consumption scales directly with the file size and can easily crash the Node.js runtime on large payloads.
+// In contrast, streams transfer data sequentially in small chunks (such as 64 KB), passing each chunk along and releasing it before reading the next.
+// This allows streams to maintain flat, minimal peak memory consumption regardless of how large the file is.
 
 // Run both approaches.
 readWholeFile();
