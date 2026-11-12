@@ -38,8 +38,9 @@ router.get(
   }),
   (req, res) => {
     // req.user is the user returned by verifyCallback
-    // Issue YOUR app JWT here and return it as JSON.
-    res.json({ error: 'not implemented' }); // remove this line when you implement
+    // Issue app JWT instead of forwarding Google's access token
+    const token = signToken({ sub: req.user.id, role: req.user.role });
+    res.json({ token });
   },
 );
 

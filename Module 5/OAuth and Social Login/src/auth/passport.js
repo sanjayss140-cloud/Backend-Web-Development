@@ -45,8 +45,48 @@ const { users, nextId } = require('../data');
 // Hint: use Array.prototype.find() on `users`. No database, no await needed.
 // ───────────────────────────────────────────────────────────────────────────────
 async function verifyCallback(accessToken, refreshToken, profile, done) {
-  // Replace this stub with your implementation.
-  return done(null, false);
+  // Resolve Google profile to a local user (returning, verified-link, or new member).
+  try {
+    if (!profile || !profile.id) {
+      return done(null, false);
+    }
+
+    const googleId = profile.id;
+    const email = profile.emails && profile.emails[0] && profile.emails[0].value;
+
+    // 1. Returning OAuth user — look up by stable Google sub first
+    const existingOAuthUser = users.find((u) => u.googleId && u.googleId === googleId);
+    if (existingOAuthUser) {
+      return done(null, existingOAuthUser);
+    }
+
+    if (!email) {
+      return done(null, false);
+    }
+
+    // 2. Existing local account — link only when Google verified the email
+    const existingLocalUser = users.find((u) => u.email === email);
+    if (existingLocalUser) {
+      if (profile._json?.email_verified !== true) {
+        return done(null, false);
+      }
+      existingLocalUser.googleId = googleId;
+      return done(null, existingLocalUser);
+    }
+
+    // 3. Brand-new user — create with lowest privilege ('member')
+    const newUser = {
+      id: nextId(),
+      googleId,
+      email,
+      name: profile.displayName || '',
+      role: 'member',
+    };
+    users.push(newUser);
+    return done(null, newUser);
+  } catch (err) {
+    return done(err);
+  }
 }
 
 passport.use(
