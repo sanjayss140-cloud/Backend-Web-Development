@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "node --watch src/app.js",
     "start": "node src/app.js",
+    "test": "node tests/run.js",
     "db:push": "prisma db push",
     "db:seed": "node prisma/seed.js",
     "setup": "prisma generate && prisma db push && node prisma/seed.js"
